@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require File.expand_path('../map.rb', __FILE__)
+require File.expand_path('../catxmlimport.rb', __FILE__)
 version = ::Refinery::CatXmlImport.version
 raise "Could not get version so gemspec can not be built" if version.nil?
 files = Dir.glob("**/*").flatten.reject do |file|

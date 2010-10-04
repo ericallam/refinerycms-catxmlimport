@@ -21,9 +21,11 @@ Gem::Specification.new do |s|
   s.files             = [
     '#{files.join("',\n    '")}'
   ]
-  #{"s.test_files        = [
+  #{"s.test_files     = [
     '#{Dir.glob("test/**/*.rb").join("',\n    '")}'
   ]" if File.directory?("test")}
+
+  s.add_dependency('savon', '~> 0.7.9')
 end
 EOF
 

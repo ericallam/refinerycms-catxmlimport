@@ -7,7 +7,7 @@ module Refinery
     autoload :Importer, 'catxmlimport/importer'
 
     def self.version
-      %q{0.0.2}
+      %q{0.0.3}
     end
   end
 end

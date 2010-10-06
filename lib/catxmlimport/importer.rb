@@ -6,8 +6,8 @@ module Refinery
 
       attr_reader :client
 
-      def initialize(client = nil)
-        @client = client || Refinery::CatXmlImport::SoapClient.new(logger)
+      def initialize(sales_channel)
+        @client = Refinery::CatXmlImport::SoapClient.new(sales_channel, logger)
       end
 
       def logger
@@ -34,41 +34,33 @@ module Refinery
       end
 
       def fetch_top_level_groups
-        start_groups  = ProductGroup.roots
-        end_groups    = client.get_classes.map do |group_hash|
-          group = ProductGroup.find_or_create_by_cat_id(
+        client.get_classes.map do |group_hash|
+          group = ::ProductGroup.find_or_create_by_cat_id(
             :cat_id => group_hash[:id],
             :name => group_hash[:name],
             :parent_id => nil
           )
         end
-        #(start_groups - end_groups).each(&:disable)
-        end_groups
       end
 
       def fetch_tree_for(top_level_group)
-        start_groups  = top_level_group.children
-        tree          = client.get_tree(top_level_group.cat_id)
-        end_groups    = tree[:listofgroups][:product_group].map do |group_hash|
-          update_tree_for(group_hash, top_level_group.id)
+        client.get_tree(top_level_group.cat_id).tap do |tree|
+          tree[:listofgroups][:product_group].map do |group_hash|
+            update_tree_for(group_hash, top_level_group.id)
+          end
         end
-        #(start_groups - end_groups).each(&:disable)
       end
 
       def update_tree_for(group_hash, parent_id)
-        group = ProductGroup.find_or_create_by_cat_id(
+        group = ::ProductGroup.find_or_create_by_cat_id(
           :cat_id => group_hash[:id],
           :name => group_hash[:name],
           :parent_id => parent_id
         )
 
-        start_groups  = group.children
-
         if group_hash[:listofproducts]
-          start_products = group.products
           # if there is only one child product node then Crack returns a Hash instead of Array
-          end_products = [group_hash[:listofproducts][:product]].flatten.map { |p| update_product(p, group) }
-          #(start_products - end_products).each(&:disable)
+          [group_hash[:listofproducts][:product]].flatten.map { |p| update_product(p, group) }
         end
 
         # recursively find/create child ProductGroups
@@ -77,7 +69,6 @@ module Refinery
           [group_hash[:listofgroups][:product_group]].flatten.each { |pg| update_tree_for(pg, group.id) }
         end
 
-        #(start_groups - end_groups).each(&:disable)
         group
       end
 
@@ -159,14 +150,12 @@ module Refinery
       def update_sales_features_for_parent(parent_hash, parent)
         if parent_hash[:listofsalesfeatures]
           [parent_hash[:listofsalesfeatures][:salesfeature]].flatten.each do |sales_feature_hash|
-            start_features = parent.sales_features
-            end_features   = parent.sales_features.find_or_create_by_cat_id(
+            parent.sales_features.find_or_create_by_cat_id(
               sales_feature_hash[:id]
             ).tap { |obj| obj.update_attributes(
               :name       => sales_feature_hash[:name],
               :paragraph  => sales_feature_hash[:paragraph]
             ) }
-            #(start_features - end_features).each(&:disable)
           end
         end
       end
@@ -179,20 +168,18 @@ module Refinery
             
             logger.info("update_images_for_parent with image_hash: #{image_hash.inspect}")
 
-            start_images = parent.images
-            end_images   = parent.images.find_or_create_by_cat_id(
+            image = parent.images.find_or_create_by_cat_id(
               image_hash[:id]
             ).tap { |obj| obj.update_attributes(
               :image_type => image_hash[:type],
               :url        => image_hash[:url]
             ) }
 
-            if end_images.new_record? or !end_images.valid?
-              logger.info("Failed to create a new image, errors: #{end_images.errors.to_a.inspect}")
+            if image.new_record? or !image.valid?
+              logger.info("Failed to create a new image, errors: #{image.errors.to_a.inspect}")
             else
-              logger.info("Successfully created or updated image id #{end_images.id}")
+              logger.info("Successfully created or updated image id #{image.id}")
             end
-            #(start_images - end_images).each(&:disable)
           end
         end
       end
@@ -200,15 +187,13 @@ module Refinery
       def update_tech_spec_groups(group_hash, group)
         if group_hash[:listoftechspecgroups]
           [group_hash[:listoftechspecgroups][:techspecgroup]].flatten.each do |tech_spec_group_hash|
-            start_tech_spec_groups = group.tech_spec_groups
-            end_tech_spec_groups = group.tech_spec_groups.find_or_create_by_cat_id(
+            group.tech_spec_groups.find_or_create_by_cat_id(
               tech_spec_group_hash[:id]
             ).tap do |tsg|
               name = tech_spec_group_hash[:name].kind_of?(String) ? tech_spec_group_hash[:name].strip : nil
               tsg.update_attributes(:name => name)
               update_tech_specs(tech_spec_group_hash, tsg)
             end
-            #(start_tech_spec_groups - end_tech_spec_groups).each(&:disable)
           end
         end
       end
@@ -216,8 +201,7 @@ module Refinery
       def update_tech_specs(tech_spec_group_hash, group)
         if tech_spec_group_hash[:listoftechspecs]
           [tech_spec_group_hash[:listoftechspecs][:techspec]].flatten.each do |tech_spec_hash|
-            start_tech_specs = group.tech_specs
-            end_tech_specs   = group.tech_specs.find_or_create_by_cat_id(
+            group.tech_specs.find_or_create_by_cat_id(
               tech_spec_hash[:id]
             ).tap { |obj| obj.update_attributes(
               :name           => tech_spec_hash[:name],
@@ -226,7 +210,6 @@ module Refinery
               :english_unit   => tech_spec_hash[:english_unit],
               :metric_unit    => tech_spec_hash[:metric_unit]
             ) }
-            #(start_tech_specs - end_tech_specs).each(&:disable)
           end
         end
       end
@@ -234,15 +217,13 @@ module Refinery
       def update_tech_spec_values(product_hash, product)
         if product_hash[:listoftechspecvalues]
           [product_hash[:listoftechspecvalues][:techspecvalue]].flatten.each do |tech_spec_value_hash|
-            start_tect_spec_values = product.tech_spec_values
-            end_tech_spec_values   = product.tech_spec_values.find_or_create_by_cat_id(
+            product.tech_spec_values.find_or_create_by_cat_id(
               tech_spec_value_hash[:id]
             ).tap { |obj| obj.update_attributes(
               :english_value  => tech_spec_value_hash[:english_value],
               :metric_value   => tech_spec_value_hash[:metric_value],
               :text_value     => tech_spec_value_hash[:text_value]
             ) }
-            #(start_tect_spec_values - end_tech_spec_values).each(&:disable)
           end
         end
       end
@@ -254,7 +235,7 @@ module Refinery
           []
         end
 
-        related_cat_ids.map{ |cat_id| Product.find_by_cat_id(cat_id).try(:id) }
+        related_cat_ids.map{ |cat_id| ::Product.find_by_cat_id(cat_id).try(:id) }
       end
 
     end

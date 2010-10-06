@@ -10,6 +10,7 @@ class RefinerycmsCatxmlimportGenerator < Rails::Generators::NamedBase
     next_migration_number = ActiveRecord::Generators::Base.next_migration_number(File.dirname(__FILE__))
     template('db/migrate/migration.rb',
              Rails.root.join("db/migrate/#{next_migration_number}_create_cat_xml_import_structure.rb"))
+    template('lib/tasks/cat_xml_import.rake', Rails.root.join('lib/tasks/cat_xml_import.rake'))
 
      puts "------------------------"
      puts "Now run:"

@@ -4,11 +4,10 @@ module Refinery
   module CatXmlImport
     class SoapClient
 
-      attr_reader :wsdl, :sales_channel, :language
+      attr_reader :sales_channel, :logger, :wsdl, :language
 
-      def initialize(logger = Logger.new('log/soap_client.log'), wsdl = 'http://xml.catmms.com/cmms?wsdl', sales_channel = 'US', language = 'en')
-        @wsdl, @sales_channel, @language = wsdl, sales_channel, language
-        @logger = logger
+      def initialize(sales_channel, logger = Logger.new('log/soap_client.log'), wsdl = 'http://xml.catmms.com/cmms?wsdl', language = 'en')
+        @sales_channel, @logger, @wsdl, @language = sales_channel, logger, wsdl, language
       end
 
       def get_classes
@@ -46,7 +45,7 @@ module Refinery
         begin
           tree.to_hash[:get_group_detail_response][:cmms][:product_group]
         rescue => e
-          @logger.error("get_group_detail error: #{e} \n #{e.backtrace.join("\n")}")
+          logger.error("get_group_detail error: #{e} \n #{e.backtrace.join("\n")}")
         end
       end
 
@@ -68,7 +67,7 @@ module Refinery
 
 
       def savon_client
-        @savon_client ||= Savon::Client.new(self.wsdl)
+        @savon_client ||= ::Savon::Client.new(self.wsdl)
       end
 
     end

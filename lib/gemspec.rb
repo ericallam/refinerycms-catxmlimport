@@ -26,6 +26,8 @@ Gem::Specification.new do |s|
   ]" if File.directory?("test")}
 
   s.add_dependency('savon', '~> 0.7.9')
+  s.add_dependency('acts_as_tree', '~> 0.1.1')
+  s.add_dependency('acts_as_list', '~> 0.1.2')
 end
 EOF
 

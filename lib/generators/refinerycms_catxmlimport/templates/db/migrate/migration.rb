@@ -1,6 +1,12 @@
-class <%= migration_name %> < ActiveRecord::Migration
+class CreateCatXmlImportStructure < ActiveRecord::Migration
 
   def self.up
+
+    create_table "cat_dealerships", :force => true do |t|
+      t.string   "sales_channel"
+    end
+
+    add_index :cat_dealerships, :id
 
     create_table "cat_images", :force => true do |t|
       t.string   "url"
@@ -54,7 +60,7 @@ class <%= migration_name %> < ActiveRecord::Migration
       t.integer "related_product_id"
     end
 
-    add_index :related_products, :id
+    add_index :related_products, [:product_id, :related_product_id]
 
     create_table "sales_features", :force => true do |t|
       t.integer  "cat_id"
@@ -104,11 +110,9 @@ class <%= migration_name %> < ActiveRecord::Migration
 
     add_index :tech_specs, :id
 
-    #page = Page.create(:title => "Map",
-    #            :link_url => "/map",
-    #            :menu_match => "^/map.*$",
-    #            :deletable => false,
-    #            :position => Page.count)
+    User.find(:all).each do |user|
+      user.plugins.create(:name => "catxmlimport", :position => (user.plugins.maximum(:position) || -1) +1)
+    end
 
   end
 
@@ -118,6 +122,7 @@ class <%= migration_name %> < ActiveRecord::Migration
     Page.destroy_all({:link_url => "/cat_xml_import"})
 
     drop_table :cat_images
+    drop_table :cat_dealerships
     drop_table :product_groups
     drop_table :products
     drop_table :related_products

@@ -1,6 +1,6 @@
 require 'rails/generators/migration'
 
-class RefinerycmsCatXmlImportGenerator < Rails::Generators::NamedBase
+class RefinerycmsCatxmlimportGenerator < Rails::Generators::NamedBase
   include Rails::Generators::Migration
 
   source_root File.expand_path('../refinerycms_catxmlimport/templates/', __FILE__)
@@ -8,8 +8,8 @@ class RefinerycmsCatXmlImportGenerator < Rails::Generators::NamedBase
 
   def generate
     next_migration_number = ActiveRecord::Generators::Base.next_migration_number(File.dirname(__FILE__))
-    template('db/migrate/migration_number_create_singular_name.rb',
-             Rails.root.join("db/migrate/#{next_migration_number}_create_#{singular_name}.rb"))
+    template('db/migrate/migration.rb',
+             Rails.root.join("db/migrate/#{next_migration_number}_create_cat_xml_import_structure.rb"))
 
      puts "------------------------"
      puts "Now run:"

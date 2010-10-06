@@ -8,11 +8,11 @@ module Refinery
       config.after_initialize do
         Refinery::Plugin.register do |plugin|
           plugin.name = "catxmlimport"
-          plugin.menu_match = /(admin|refinery)\/cat_xml_import?$/
-          plugin.url = {:controller => '/admin/cat_xml_import', :action => 'index'}
+          plugin.menu_match = /(admin|refinery)\/cat_xml_imports$/
+          plugin.url = {:controller => '/admin/cat_xml_imports', :action => 'show'}
           plugin.activity = {
-            :class => CatXmlImport,
-            :title => 'title',
+            :class => CatDealership,
+            :title => 'sales_channel',
             :url_prefix => 'edit'
           }
         end

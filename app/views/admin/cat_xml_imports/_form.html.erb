@@ -1,0 +1,20 @@
+<% form_for @cat_dealership, :url => admin_cat_xml_import_path do |f| %>
+  <%= render :partial => "/shared/admin/error_messages",
+             :locals => {
+               :object => @cat_dealership,
+               :include_object_name => true
+             } %>
+
+  <div class='field'>
+    <%= f.label :sales_channel %>
+    <%= f.text_field :sales_channel, :class => "larger widest" %>
+  </div>
+
+  <%= render :partial => "/shared/admin/form_actions",
+             :locals => {
+               :f => f,
+               :continue_editing => true,
+               :hide_delete => true
+             } %>
+
+<% end %>

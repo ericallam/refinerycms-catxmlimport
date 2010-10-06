@@ -1,0 +1,11 @@
+<div id="records">
+  <ul>
+    <li class="clearfix record on">
+      <strong>Sales Channel:</strong> <%= @cat_dealership.sales_channel %>
+      <span class='actions'>
+        <%= link_to refinery_icon_tag("application_edit.png"), edit_admin_cat_xml_import_path,
+             :title => t('.edit') %>
+      </span>
+    </li>
+  </ul>
+</div>

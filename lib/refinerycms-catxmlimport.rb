@@ -6,6 +6,8 @@ module Refinery
 
     class Engine < Rails::Engine
       config.after_initialize do
+        RefinerySetting.find_or_set(:dealership_sales_channel, 'default')
+        
         Refinery::Plugin.register do |plugin|
           plugin.name = "catxmlimport"
           plugin.menu_match = /(admin|refinery)\/cat_xml_imports$/
